@@ -10,13 +10,19 @@ class Bullet():
     
     def update(self):
         self.position += self.velocity * time.dt
-    
+        if self.get_world_position().x > 16*camera.aspect_ratio or self.get_world_position().x < -16*camera.aspect_ratio or self.get_world_position().y > 16 or self.get_world_position().y < -16:
+                self.position = Vec2(1,1)
+                self.velocity = Vec2(0,0)
+                
     def get_world_position(self):
         return Vec2(self.position.x*32*camera.aspect_ratio,self.position.y*32)
 
     def get_position(self):
         return self.position
 
+    @property
+    def available(self):
+        return self.position == Vec2(1,1) and self.velocity == Vec2(0,0)
 
 
 if __name__ == "__main__":
@@ -37,7 +43,6 @@ if __name__ == "__main__":
         
         for bullet in bullets:
             bullet.update()
-            if bullet.get_world_position().x > 16*camera.aspect_ratio or bullet.get_world_position().x < -16*camera.aspect_ratio or bullet.get_world_position().y > 16 or bullet.get_world_position().y < -16:
-                bullet.position = Vec2(0,0)
+            
 
     app.run()

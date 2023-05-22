@@ -1,14 +1,16 @@
 from ursina import *
-
+from bullet import Bullet
+from shader import bullet_shader
 
 class ControllerPlayer(Entity):
-    def __init__(self, speed = 5, add_to_scene_entities=True, **kwargs):
+    def __init__(self, bullets, speed = 5, add_to_scene_entities=True, **kwargs):
         super().__init__(add_to_scene_entities,
                          model='cube',
                          texture="player",
                          color=color.azure,
                          **kwargs)
         self.SPEED = speed
+        self.bullets = bullets
         
     def update(self):
         lx,ly,rx,ry,lt,rt = held_keys['gamepad left stick x'], held_keys["gamepad left stick y"], held_keys["gamepad right stick x"], held_keys["gamepad right stick y"], held_keys["gamepad left trigger"], held_keys["gamepad right trigger"]
@@ -19,22 +21,24 @@ class ControllerPlayer(Entity):
 
     def input(self, key):
         if key == "gamepad a":
-            print("A pressed")
-            if self.color == color.azure:
-                self.color = color.white
-            else :
-                self.color = color.azure
+            for bullet in self.bullets:
+                if bullet.available:
+                    bullet.position = Vec2(self.position.x/(32*camera.aspect_ratio), self.position.y /32)
+                    bullet.velocity = Vec2(math.sin(math.radians(self.rotation_z)), math.cos(math.radians(self.rotation_z))) * 0.2
+                    break
 
 
 class KeyboadPlayer(Entity):
-    def __init__(self, speed=5, add_to_scene_entities=True, **kwargs):
+    def __init__(self, bullets, speed=5, add_to_scene_entities=True, **kwargs):
         super().__init__(add_to_scene_entities,
                          model='cube',
                          texture="player",
                          color=color.green,
                          **kwargs)
         self.SPEED = speed
-        
+        self.bullets = bullets
+    
+    
     def update(self):
         lx,ly = held_keys['d'] - held_keys['a'], held_keys['w'] - held_keys['s']
         self.velocity = Vec3(lx,ly, 0).normalized()
@@ -43,10 +47,32 @@ class KeyboadPlayer(Entity):
         if lx != 0 or ly != 0:        
             self.rotation_z = -math.degrees(math.atan2(ly, lx))+90
 
+    def input(self, key):
+        if key == "space":
+            for bullet in self.bullets:
+                if bullet.available:
+                    bullet.position = Vec2(self.position.x/(32*camera.aspect_ratio), self.position.y /32)
+                    bullet.velocity = Vec2(math.sin(math.radians(self.rotation_z)), math.cos(math.radians(self.rotation_z))) * 0.2
+                    break
+                
 if __name__ == '__main__':
     app = Ursina()
     camera.orthographic = True
     camera.fov = 32
-    p1 = ControllerPlayer()
-    p2 = KeyboadPlayer()
+    camera.shader = bullet_shader
+    bullets = [Bullet(Vec2(1,1), Vec2(0,0)) for _ in range(1000)]
+    p1 = ControllerPlayer(bullets)
+    p2 = KeyboadPlayer(bullets)
+    
+    def update():
+        
+        camera.set_shader_input("camera_position", camera.position)
+        camera.set_shader_input("points", [bullet.get_position() for bullet in bullets])
+        
+        for bullet in bullets:
+            bullet.update()
+            if bullet.get_world_position().x > 16*camera.aspect_ratio or bullet.get_world_position().x < -16*camera.aspect_ratio or bullet.get_world_position().y > 16 or bullet.get_world_position().y < -16:
+                bullet.position = Vec2(1,1)
+        
+        
     app.run()
