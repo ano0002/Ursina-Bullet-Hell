@@ -4,10 +4,10 @@ import random
 
 bullet_shader = Shader(fragment=open("bullet.frag").read(),
 default_input={
-    "points" : [Vec2(0,0) for _ in range(100)],
+    "points" : [Vec2(0,0) for _ in range(1000)],
     "fireflies_color" : Vec4(1,0,0,1),
     "camera_position" : Vec3(0,0,0),
-    "fireflies_size" : 0.005
+    "fireflies_size" : 0.01
 })
 
 if __name__ == '__main__':

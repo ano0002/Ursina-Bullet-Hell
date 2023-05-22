@@ -11,11 +11,11 @@ camera.shader = bullet_shader
 p1 = KeyboadPlayer()
 p2 = ControllerPlayer()
 
-bullets = [Vec2(0,1) for _ in range(100)]
+bullets = [Vec2(0,0) for _ in range(100)]
 
 def update():
     for bullet in bullets:
-        bullet += Vec2(time.dt) 
+        bullet += Vec2(time.dt)/5 
     camera.set_shader_input("camera_position", camera.position)
     camera.set_shader_input("points", bullets)
 
