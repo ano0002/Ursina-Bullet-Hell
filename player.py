@@ -1,5 +1,4 @@
 from ursina import *
-from controller import XboxController 
 
 
 class ControllerPlayer(Entity):
@@ -9,11 +8,10 @@ class ControllerPlayer(Entity):
                          texture="player",
                          color=color.azure,
                          **kwargs)
-        self.controller = XboxController()
         self.SPEED = speed
         
     def update(self):
-        lx,ly,rx,ry,lt,rt = self.controller.read()
+        lx,ly,rx,ry,lt,rt = held_keys['gamepad left stick x'], held_keys["gamepad left stick y"], held_keys["gamepad right stick x"], held_keys["gamepad right stick y"], held_keys["gamepad left trigger"], held_keys["gamepad right trigger"]
         self.velocity = Vec3(lx, ly, 0).normalized()*max(abs(lx), abs(ly))
         self.position += self.velocity * time.dt * self.SPEED
         if lx != 0 or ly != 0:        
