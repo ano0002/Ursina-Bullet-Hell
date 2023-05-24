@@ -1,5 +1,4 @@
 from ursina import *
-import csv
 
 
 class Tileset():
@@ -14,8 +13,11 @@ class Tileset():
 
 class Tilemap(Entity):
     def __init__(self,map_file,tileset) -> None:
+        super().__init__()
         self.tileset = tileset
         self.tiles = self.generate_map(map_file)
+        self.combine()
+        self.texture = tileset.tileset
         
     def generate_map(self,map_file):
         
@@ -29,10 +31,10 @@ class Tilemap(Entity):
             for x,gid in enumerate(lines):
                 tile_coord = Vec2(gid%tileset_size.x,
                                   tileset_size.y-1-(gid//tileset_size.x))
-                print(gid,tile_coord,tileset_size)
                 tiles[x][y] = Entity(model='quad', texture=texture,
                                     tileset_size = tileset_size,tile_coordinate = tile_coord,
-                                    position=(Vec3(x,y,1)-Vec3(width/2-.5,15.5,0))*Vec3(1,-1,1))
+                                    position=(Vec3(x,y,1)-Vec3(width/2-.5,15.5,0))*Vec3(1,-1,1),
+                                    parent = self)
         return tiles
     
     def parse_csv(self,map_file):
@@ -47,4 +49,5 @@ if __name__ == "__main__":
     camera.fov = 32
     tileset = Tileset("./assets/tileset.png")
     tilemap = Tilemap("./assets/maps/map.csv",tileset)
+    EditorCamera()
     app.run()

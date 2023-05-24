@@ -25,6 +25,12 @@ class Bullet():
     def available(self):
         return self.position == Vec2(1,1) and self.velocity == Vec2(0,0)
 
+    @available.setter
+    def available(self, value):
+        if value:
+            self.position = Vec2(1,1)
+            self.velocity = Vec2(0,0)
+            self.team = -1
 
 if __name__ == "__main__":
     app = Ursina()

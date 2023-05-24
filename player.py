@@ -3,60 +3,115 @@ from bullet import Bullet
 from shader import bullet_shader
 
 class ControllerPlayer(Entity):
-    def __init__(self, bullets, team = 0, speed = 5, add_to_scene_entities=True, **kwargs):
+    def __init__(self, bullets, team = 0, speed = 5, lives= 3, add_to_scene_entities=True, **kwargs):
         super().__init__(add_to_scene_entities,
-                         model='cube',
+                         model='quad',
                          texture="player",
                          color=color.azure,
                          **kwargs)
         self.SPEED = speed
         self.bullets = bullets
         self.team = team
+        self.lives = lives
 
     def update(self):
-        lx,ly,rx,ry,lt,rt = held_keys['gamepad left stick x'], held_keys["gamepad left stick y"], held_keys["gamepad right stick x"], held_keys["gamepad right stick y"], held_keys["gamepad left trigger"], held_keys["gamepad right trigger"]
-        self.velocity = Vec3(lx, ly, 0).normalized()*max(abs(lx), abs(ly))
-        self.position += self.velocity * time.dt * self.SPEED
-        if lx != 0 or ly != 0:
-            self.rotation_z = -math.degrees(math.atan2(ly, lx))+90
+        if self.lives > 0:
+            lx,ly,rx,ry,lt,rt = held_keys['gamepad left stick x'], held_keys["gamepad left stick y"], held_keys["gamepad right stick x"], held_keys["gamepad right stick y"], held_keys["gamepad left trigger"], held_keys["gamepad right trigger"]
+            self.velocity = Vec3(lx, ly, 0).normalized()*max(abs(lx), abs(ly))
+            self.position += self.velocity * time.dt * self.SPEED
+            if lx != 0 or ly != 0:
+                self.rotation_z = -math.degrees(math.atan2(ly, lx))+90
+
+            if self.shot():
+                self.lives -= 1
+        else:
+            self.die()
+            destroy(self)
+    
+    def shot(self):
+        for bullet in self.bullets:
+            if not bullet.available:
+                if bullet.team != self.team:
+                    if distance_2d(bullet.get_world_position(),self.position) < 0.4:
+                        bullet.available = True
+                        return True
+        return False
+
+    def die(self):
+        print("dead")
+        pass
 
     def input(self, key):
         if key == "gamepad a":
-            for bullet in self.bullets:
-                if bullet.available:
-                    bullet.team = self.team
-                    bullet.position = Vec2(self.position.x/(32*camera.aspect_ratio), self.position.y /32)
-                    bullet.velocity = Vec2(math.sin(math.radians(self.rotation_z)), math.cos(math.radians(self.rotation_z))) * 0.2
-                    break
+            self.shoot()
+
+    def shoot(self):
+        for bullet in self.bullets:
+            if bullet.available:
+                bullet.team = self.team
+                bullet.position = Vec2(self.position.x/(32*camera.aspect_ratio), self.position.y /32)
+                bullet.velocity = Vec2(math.sin(math.radians(self.rotation_z)), math.cos(math.radians(self.rotation_z))) * 0.2
+                break
+
+    @property
+    def alive(self):
+        return self.lives > 0
 
 
 class KeyboadPlayer(Entity):
-    def __init__(self, bullets, team= 0, speed=5, add_to_scene_entities=True, **kwargs):
+    def __init__(self, bullets, team= 0, speed=5, lives = 3, add_to_scene_entities=True, **kwargs):
         super().__init__(add_to_scene_entities,
-                         model='cube',
+                         model='quad',
                          texture="player",
                          color=color.green,
                          **kwargs)
         self.SPEED = speed
         self.bullets = bullets
         self.team = team
+        self.lives = lives
 
     def update(self):
-        lx,ly = held_keys['d'] - held_keys['a'], held_keys['w'] - held_keys['s']
-        self.velocity = Vec3(lx,ly, 0).normalized()
-        self.position += self.velocity * time.dt * self.SPEED
+        if self.lives > 0:
+            lx,ly = held_keys['d'] - held_keys['a'], held_keys['w'] - held_keys['s']
+            self.velocity = Vec3(lx, ly, 0).normalized()*max(abs(lx), abs(ly))
+            self.position += self.velocity * time.dt * self.SPEED
+            if lx != 0 or ly != 0:
+                self.rotation_z = -math.degrees(math.atan2(ly, lx))+90
 
-        if lx != 0 or ly != 0:        
-            self.rotation_z = -math.degrees(math.atan2(ly, lx))+90
+            if self.shot():
+                self.lives -= 1
+        else:
+            self.die()
+            destroy(self)
+    
+    def shot(self):
+        for bullet in self.bullets:
+            if not bullet.available:
+                if bullet.team != self.team:
+                    if distance_2d(bullet.get_world_position(),self.position) < 0.4:
+                        bullet.available = True
+                        return True
+        return False
+
+    def die(self):
+        print("dead")
+        pass
 
     def input(self, key):
         if key == "space":
-            for bullet in self.bullets:
-                if bullet.available:
-                    bullet.team = self.team
-                    bullet.position = Vec2(self.position.x/(32*camera.aspect_ratio), self.position.y /32)
-                    bullet.velocity = Vec2(math.sin(math.radians(self.rotation_z)), math.cos(math.radians(self.rotation_z))) * 0.2
-                    break
+            self.shoot()
+
+    def shoot(self):
+        for bullet in self.bullets:
+            if bullet.available:
+                bullet.team = self.team
+                bullet.position = Vec2(self.position.x/(32*camera.aspect_ratio), self.position.y /32)
+                bullet.velocity = Vec2(math.sin(math.radians(self.rotation_z)), math.cos(math.radians(self.rotation_z))) * 0.2
+                break
+
+    @property
+    def alive(self):
+        return self.lives > 0
 
 if __name__ == '__main__':
     app = Ursina()

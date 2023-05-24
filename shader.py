@@ -5,7 +5,7 @@ import random
 bullet_shader = Shader(fragment=open("bullet.frag").read(),
 default_input={
     "points" : [Vec3(0,0,random.randint(0,1)) for _ in range(1000)],
-    "team1_color" : Vec4(0,1,0,1),
+    "team1_color" : Vec4(1,1,1,1),
     "team2_color" : Vec4(1,0,0,1),
     "camera_position" : Vec3(0,0,0),
     "bullets_size" : 0.01
