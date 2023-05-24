@@ -6,19 +6,20 @@ class Bullet():
     def __init__(self, position, velocity):
         self.position = position
         self.velocity = velocity
-        
+        self.team = 0
     
     def update(self):
         self.position += self.velocity * time.dt
         if self.get_world_position().x > 16*camera.aspect_ratio or self.get_world_position().x < -16*camera.aspect_ratio or self.get_world_position().y > 16 or self.get_world_position().y < -16:
                 self.position = Vec2(1,1)
                 self.velocity = Vec2(0,0)
+                self.team = -1
                 
     def get_world_position(self):
         return Vec2(self.position.x*32*camera.aspect_ratio,self.position.y*32)
 
     def get_position(self):
-        return self.position
+        return Vec3(*self.position, self.team)
 
     @property
     def available(self):
@@ -35,6 +36,9 @@ if __name__ == "__main__":
     
     EditorCamera()
     bullets = [Bullet(Vec2(0,0), Vec2((random.random()*2-1)*0.01,(random.random()*2-1)*0.01)) for _ in range(1000)]
+
+    for bullet in bullets:
+        bullet.team = random.randint(0,1)
 
     def update():
         
