@@ -51,13 +51,11 @@ class Ennemy(Entity):
         return False
 
     def die(self):
-        print("dead")
         pass
 
 class SpiralEnnemy(Ennemy):
     def __init__(self, bullets,speed = 5,fire_rate= 5, **kwargs):
-        super().__init__(bullets, 1, speed,fire_rate = fire_rate, **kwargs)
-        self.rotation_z = 0
+        super().__init__(bullets, speed = speed,fire_rate = fire_rate, **kwargs)
 
     def custom_update(self):
         if self.total_alive > 1/self.fire_rate:
@@ -67,8 +65,7 @@ class SpiralEnnemy(Ennemy):
 
 class DoubleSpiralEnnemy(Ennemy):
     def __init__(self, bullets,speed = 5,fire_rate= 5, **kwargs):
-        super().__init__(bullets, 1, speed,fire_rate = fire_rate, **kwargs)
-        self.rotation_z = 0
+        super().__init__(bullets, speed = speed,fire_rate = fire_rate, **kwargs)
 
     def custom_update(self):
         if self.total_alive > 1/self.fire_rate:
@@ -79,8 +76,7 @@ class DoubleSpiralEnnemy(Ennemy):
 
 class QuadrupleSpiralEnnemy(Ennemy):
     def __init__(self, bullets,speed = 5,fire_rate= 5, **kwargs):
-        super().__init__(bullets, 1, speed,fire_rate = fire_rate, **kwargs)
-        self.rotation_z = 0
+        super().__init__(bullets, speed = speed,fire_rate = fire_rate, **kwargs)
     
     def custom_update(self):
         if self.total_alive > 1/self.fire_rate:
@@ -93,8 +89,7 @@ class QuadrupleSpiralEnnemy(Ennemy):
 
 class MachineGunEnnemy(Ennemy):
     def __init__(self, bullets,speed = 5,fire_rate= 5, **kwargs):
-        super().__init__(bullets, 1, speed,fire_rate = fire_rate, **kwargs)
-        self.rotation_z = 0
+        super().__init__(bullets, speed = speed,fire_rate = fire_rate, **kwargs)
     
     def custom_update(self):
         if self.total_alive > 1/self.fire_rate:
@@ -103,7 +98,7 @@ class MachineGunEnnemy(Ennemy):
 
 class AimerEnnemy(Ennemy):
     def __init__(self, bullets,targets,speed = 5,fire_rate= 1, **kwargs):
-        super().__init__(bullets, 1, speed,fire_rate = fire_rate, **kwargs)
+        super().__init__(bullets, speed = speed,fire_rate = fire_rate, **kwargs)
         self.targets = targets
         self.last_bullet = 0
     
@@ -120,6 +115,34 @@ class AimerEnnemy(Ennemy):
             target = min(self.targets, key=lambda target: distance_2d(target.position,self.position) if target.alive else float('inf'))
             self.look_at_2d(target.position)
 
+class PatrolEnnemy(Ennemy):
+    def __init__(self, bullets, waypoints, targets,speed =0.2,fire_rate= 1, **kwargs):
+        super().__init__(bullets, speed = speed,fire_rate = fire_rate, **kwargs)
+        self.waypoints = waypoints
+        self.current_waypoint = 0
+        self.targets = targets
+        self.last_bullet = 0
+        self.position = self.waypoints[self.current_waypoint]
+    
+    def custom_update(self):
+        if any(target.alive for target in self.targets):
+            target = min(self.targets, key=lambda target: distance_2d(target.position,self.position) if target.alive else float('inf'))
+            self.look_at_2d(target.position)
+            
+        if self.total_alive > 1/self.fire_rate:
+            if self.total_alive-self.last_bullet > 0.03:
+                self.shoot()
+                self.last_bullet = self.total_alive
+            if self.total_alive > 1/self.fire_rate+0.1:
+                self.total_alive = 0
+                self.last_bullet = 0
+
+        
+        if distance_2d(self.position,self.waypoints[self.current_waypoint]) < 0.1:
+            self.current_waypoint = (self.current_waypoint+1)%len(self.waypoints)
+            self.animate_position(self.waypoints[self.current_waypoint],duration=1/self.SPEED,curve=curve.linear)
+
+
 if __name__ == "__main__":
 
     app = Ursina(development_mode=True)
@@ -135,13 +158,15 @@ if __name__ == "__main__":
     bullets = [Bullet(Vec2(1,1),Vec2(0,0)) for _ in range(1000)]
 
     p1 = KeyboadPlayer(bullets,team=0, lives=float('inf'))
-    p2 = ControllerPlayer(bullets, team=0, lives=1)
+    p2 = ControllerPlayer(bullets, team=0, lives=float('inf'))
     
     MachineGunEnnemy(bullets, position=Vec2(-5,5))
     SpiralEnnemy(bullets, position=Vec2(0,5))
     DoubleSpiralEnnemy(bullets, position=Vec2(5,5))    
     QuadrupleSpiralEnnemy(bullets, position=Vec2(10,5))
     AimerEnnemy(bullets, (p1,p2), position=Vec2(-10,5))
+    PatrolEnnemy(bullets, [Vec2(-10,0),Vec2(-10,10),Vec2(10,10),Vec2(10,0)], (p1,p2), position=Vec2(0,0))
+
 
     def update():
         for bullet in bullets:
