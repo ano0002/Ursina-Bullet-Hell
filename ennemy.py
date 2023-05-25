@@ -7,9 +7,9 @@ import math
 
 
 class Ennemy(Entity):
-    def __init__(self, bullets,lives=1, team= 1, speed=5, **kwargs):
+    def __init__(self, bullets,lives=1, team= 1, speed=5,texture = "turret", **kwargs):
         super().__init__(model='quad',
-                         texture="player",
+                         texture=texture,
                          color=color.red,
                          **kwargs)
         self.SPEED = speed
@@ -65,7 +65,7 @@ class SpiralEnnemy(Ennemy):
 
 class DoubleSpiralEnnemy(Ennemy):
     def __init__(self, bullets,speed = 5,fire_rate= 5, **kwargs):
-        super().__init__(bullets, speed = speed,fire_rate = fire_rate, **kwargs)
+        super().__init__(bullets, speed = speed,fire_rate = fire_rate,texture="2xturret", **kwargs)
 
     def custom_update(self):
         if self.total_alive > 1/self.fire_rate:
@@ -76,7 +76,7 @@ class DoubleSpiralEnnemy(Ennemy):
 
 class QuadrupleSpiralEnnemy(Ennemy):
     def __init__(self, bullets,speed = 5,fire_rate= 5, **kwargs):
-        super().__init__(bullets, speed = speed,fire_rate = fire_rate, **kwargs)
+        super().__init__(bullets, speed = speed,fire_rate = fire_rate,texture="4xturret", **kwargs)
     
     def custom_update(self):
         if self.total_alive > 1/self.fire_rate:
@@ -103,6 +103,9 @@ class AimerEnnemy(Ennemy):
         self.last_bullet = 0
     
     def custom_update(self):
+        if any(target.alive for target in self.targets):
+            target = min(self.targets, key=lambda target: distance_2d(target.position,self.position) if target.alive else float('inf'))
+            self.look_at_2d(target.position - Vec3(0.8,0.8,0))
         if self.total_alive > 1/self.fire_rate:
             if self.total_alive-self.last_bullet > 0.03:
                 self.shoot()
@@ -111,9 +114,6 @@ class AimerEnnemy(Ennemy):
                 self.total_alive = 0
                 self.last_bullet = 0
 
-        if any(target.alive for target in self.targets):
-            target = min(self.targets, key=lambda target: distance_2d(target.position,self.position) if target.alive else float('inf'))
-            self.look_at_2d(target.position)
 
 class PatrolEnnemy(Ennemy):
     def __init__(self, bullets, waypoints, targets,speed =0.2,fire_rate= 1, **kwargs):
@@ -127,7 +127,7 @@ class PatrolEnnemy(Ennemy):
     def custom_update(self):
         if any(target.alive for target in self.targets):
             target = min(self.targets, key=lambda target: distance_2d(target.position,self.position) if target.alive else float('inf'))
-            self.look_at_2d(target.position)
+            self.look_at_2d(target.position - Vec3(0.8,0.8,0))
             
         if self.total_alive > 1/self.fire_rate:
             if self.total_alive-self.last_bullet > 0.03:
