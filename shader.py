@@ -8,7 +8,10 @@ default_input={
     "team1_color" : Vec4(1,1,1,1),
     "team2_color" : Vec4(1,0,0,1),
     "camera_position" : Vec3(0,0,0),
-    "bullets_size" : 0.01
+    "bullets_size" : 0.01,
+    'vignette_distance': 0.5,
+    'vignette_color': (0,0,0,1),
+    'vignette_density': 1.2
 })
 
 if __name__ == '__main__':

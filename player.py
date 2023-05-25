@@ -1,4 +1,7 @@
 from ursina import *
+
+
+import time
 from bullet import Bullet
 from shader import bullet_shader
 
@@ -13,6 +16,7 @@ class ControllerPlayer(Entity):
         self.bullets = bullets
         self.team = team
         self.lives = lives
+        self.last_dash = 0
 
     def update(self):
         if self.lives > 0:
@@ -44,6 +48,11 @@ class ControllerPlayer(Entity):
     def input(self, key):
         if key == "gamepad a":
             self.shoot()
+        if key == "gamepad start":
+            if self.last_dash+10 < time.time():
+                self.dash()
+                self.last_dash = time.time()
+        print(key)
 
     def shoot(self):
         for bullet in self.bullets:
@@ -57,18 +66,21 @@ class ControllerPlayer(Entity):
     def alive(self):
         return self.lives > 0
 
+    def dash(self,dash_length = 3):
+        self.animate_position(self.position + self.up* dash_length, duration=0.1, curve = curve.in_out_cubic)
+
 
 class KeyboadPlayer(Entity):
     def __init__(self, bullets, team= 0, speed=5, lives = 3, add_to_scene_entities=True, **kwargs):
         super().__init__(add_to_scene_entities,
                          model='quad',
                          texture="player",
-                         color=color.green,
                          **kwargs)
         self.SPEED = speed
         self.bullets = bullets
         self.team = team
         self.lives = lives
+        self.last_dash = 0
 
     def update(self):
         if self.lives > 0:
@@ -100,6 +112,10 @@ class KeyboadPlayer(Entity):
     def input(self, key):
         if key == "space":
             self.shoot()
+        if key == "left mouse down":
+            if self.last_dash+10 < time.time():
+                self.dash()
+                self.last_dash = time.time()
 
     def shoot(self):
         for bullet in self.bullets:
@@ -112,6 +128,9 @@ class KeyboadPlayer(Entity):
     @property
     def alive(self):
         return self.lives > 0
+
+    def dash(self,dash_length = 3):
+        self.animate_position(self.position + self.up* dash_length, duration=0.1, curve = curve.in_out_cubic)
 
 if __name__ == '__main__':
     app = Ursina()

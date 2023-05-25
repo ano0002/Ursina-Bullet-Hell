@@ -3,7 +3,7 @@ from player import ControllerPlayer, KeyboadPlayer
 from shader import bullet_shader
 from bullet import Bullet
 from tilemap import Tilemap, Tileset
-from ennemy import SpiralEnnemy
+from ennemy import *
 
 app = Ursina(development_mode=True)
 
