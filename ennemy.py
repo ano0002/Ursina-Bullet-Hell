@@ -4,7 +4,7 @@ from ursina.prefabs.health_bar import HealthBar
 from shader import bullet_shader
 from bullet import Bullet
 from tilemap import Tilemap, Tileset
-from player import ControllerPlayer, KeyboadPlayer
+from player import Player
 import math
 
 class Wave():
@@ -268,10 +268,16 @@ if __name__ == "__main__":
     camera.shader = bullet_shader
     bullets = [Bullet(Vec2(1,1),Vec2(0,0)) for _ in range(1000)]
 
-    p1 = KeyboadPlayer(bullets,team=0, lives=float('inf'))
-    p2 = ControllerPlayer(bullets, team=0, lives=float('inf'))
-    
-    players = [p1]
+    p1 = Player(bullets, controls={"up":"gamepad left stick y",
+                                    "down":"",
+                                    "right":"gamepad left stick x",
+                                    "left":"",
+                                    "shoot":"gamepad a",
+                                    "dash":"gamepad start"},
+                                    left = True,
+                                    lives=float('inf'))
+    p2 = Player(bullets,lives=float('inf'))
+    players = [p1,p2]
     
     wave = Wave(
         [

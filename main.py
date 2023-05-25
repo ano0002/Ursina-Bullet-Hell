@@ -1,5 +1,5 @@
 from ursina import *
-from player import ControllerPlayer, KeyboadPlayer
+from player import Player
 from shader import bullet_shader
 from bullet import Bullet
 from tilemap import Tilemap, Tileset
@@ -17,15 +17,21 @@ tilemap = Tilemap("./assets/maps/map.csv",tileset)
 camera.shader = bullet_shader
 bullets = [Bullet(Vec2(1,1),Vec2(0,0)) for _ in range(1000)]
 
-p1 = KeyboadPlayer(bullets)
-p2 = ControllerPlayer(bullets)
+p1 = Player(bullets, controls={"up":"gamepad left stick y",
+                                "down":"",
+                                "right":"gamepad left stick x",
+                                "left":"",
+                                "shoot":"gamepad a",
+                                "dash":"gamepad start"},
+                                left = True)
+p2 = Player(bullets)
 
 players = [p1,p2]
 
 waves = [Wave(
             [
                 (MachineGunEnnemy,{'position':Vec2(-5,5)})
-            ],3 ,{
+            ],50 ,{
                 "bullets":bullets,
                 "targets":players
             }),
