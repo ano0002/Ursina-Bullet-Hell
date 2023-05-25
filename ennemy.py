@@ -1,4 +1,6 @@
 from ursina import *
+from ursina.prefabs.health_bar import HealthBar
+
 from shader import bullet_shader
 from bullet import Bullet
 from tilemap import Tilemap, Tileset
@@ -7,7 +9,9 @@ import math
 
 
 class Ennemy(Entity):
-    def __init__(self, bullets,lives=1, team= 1, speed=5,texture = "turret", **kwargs):
+    def func():
+        pass
+    def __init__(self, bullets,lives=1, team= 1, speed=5,texture = "turret", on_death=func, **kwargs):
         super().__init__(model='quad',
                          texture=texture,
                          color=color.red,
@@ -17,7 +21,8 @@ class Ennemy(Entity):
         self.team = team
         self.total_alive = 0
         self.lives = lives
-
+        self.ondeath = on_death
+        
     def update(self):
         if self.lives > 0:
             
@@ -51,6 +56,7 @@ class Ennemy(Entity):
         return False
 
     def die(self):
+        self.ondeath()
         pass
 
 class SpiralEnnemy(Ennemy):
@@ -114,7 +120,6 @@ class AimerEnnemy(Ennemy):
                 self.total_alive = 0
                 self.last_bullet = 0
 
-
 class PatrolEnnemy(Ennemy):
     def __init__(self, bullets, waypoints, targets,speed =0.2,fire_rate= 1, **kwargs):
         super().__init__(bullets, speed = speed,fire_rate = fire_rate, **kwargs)
@@ -143,6 +148,39 @@ class PatrolEnnemy(Ennemy):
             self.animate_position(self.waypoints[self.current_waypoint],duration=1/self.SPEED,curve=curve.linear)
 
 
+class Boss(Ennemy):
+    def __init__(self, bullets, waypoints, targets,speed =0.2,fire_rate= 1, **kwargs):
+        super().__init__(bullets, speed = speed,scale =2,fire_rate = fire_rate, **kwargs)
+        self.waypoints = waypoints
+        self.current_waypoint = 0
+        self.targets = targets
+        self.last_bullet = 0
+        self.position = self.waypoints[self.current_waypoint]
+        self.life_bar = HealthBar(max_value=self.lives,roundness=0,show_text=False,bar_color=color.red,animation_duration=0,position = Vec2(-0.25,-0.45),parent = camera.ui)
+    
+    def custom_update(self):
+        if any(target.alive for target in self.targets):
+            target = min(self.targets, key=lambda target: distance_2d(target.position,self.position) if target.alive else float('inf'))
+            self.look_at_2d(target.position - Vec3(0.4))
+            
+        if self.total_alive > 1/self.fire_rate:
+            if self.total_alive-self.last_bullet > 0.03:
+                self.shoot()
+                self.last_bullet = self.total_alive
+            if self.total_alive > 1/self.fire_rate+0.1:
+                self.total_alive = 0
+                self.last_bullet = 0
+
+        self.life_bar.value = self.lives
+        
+        if distance_2d(self.position,self.waypoints[self.current_waypoint]) < 0.1:
+            self.current_waypoint = (self.current_waypoint+1)%len(self.waypoints)
+            self.animate_position(self.waypoints[self.current_waypoint],duration=1/self.SPEED,curve=curve.linear)
+
+    def die(self):
+        self.life_bar.enabled = False
+        super().die()
+
 if __name__ == "__main__":
 
     app = Ursina(development_mode=True)
@@ -166,6 +204,7 @@ if __name__ == "__main__":
     QuadrupleSpiralEnnemy(bullets, position=Vec2(10,5))
     AimerEnnemy(bullets, (p1,p2), position=Vec2(-10,5))
     PatrolEnnemy(bullets, [Vec2(-10,0),Vec2(-10,10),Vec2(10,10),Vec2(10,0)], (p1,p2), position=Vec2(0,0))
+    Boss(bullets, [Vec2(-10,-5),Vec2(10,-5)], (p1,p2), position=Vec2(0,-5), lives=50)
 
 
     def update():
