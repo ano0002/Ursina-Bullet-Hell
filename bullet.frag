@@ -50,7 +50,10 @@ void main() {
         point1.x *= aspect;
         if (points[i].y < 0.5 && points[i].y > -0.5) {
             float d = distance(point1,new_uv);
-            if (d < bullets_size) {
+            if (d < bullets_size/3){
+                color = mix(vec4(1), vec4(1,0,0,1), d*(1/bullets_size));
+            }
+            else if (d < bullets_size) {
                 if (points[i].z == 0) {
                     color = mix(team1_color, color, d*(1/bullets_size));
                 }
