@@ -7,11 +7,34 @@ from tilemap import Tilemap, Tileset
 from player import ControllerPlayer, KeyboadPlayer
 import math
 
+class Wave():
+    def __init__(self,ennemies,delay,args={},next_wave = None) -> None:
+        self.to_spawn = ennemies
+        self.spawned = []
+        self.spawned_total = 0
+        self.spawned_alive = 0
+        self.delay = delay
+        self.next_wave = next_wave
+        
+        self.args = args
+        
+    
+    def start(self):
+        if self.to_spawn == []:
+            return
+        for ennemy_type, args in self.to_spawn:
+            self.spawned.append(ennemy_type(wave = self,**self.args,**args))
+            self.spawned_total += 1
+            self.spawned_alive += 1
+        self.to_spawn = []
+            
+        if self.next_wave:
+            invoke(self.next_wave.start, delay=self.delay)
 
 class Ennemy(Entity):
     def func():
         pass
-    def __init__(self, bullets,lives=1, team= 1, speed=5,texture = "turret", on_death=func, **kwargs):
+    def __init__(self, bullets,lives=1, team= 1, speed=5,texture = "turret", on_death=func, wave=None, **kwargs):
         super().__init__(model='quad',
                          texture=texture,
                          color=color.red,
@@ -23,6 +46,7 @@ class Ennemy(Entity):
         self.lives = lives
         self.ondeath = on_death
         self.bullets_shot = []
+        self.wave = wave
         
     def update(self):
         if self.lives > 0:
@@ -40,8 +64,15 @@ class Ennemy(Entity):
                     self.bullets_shot.remove(bullet)
             
         else:
+            self.ondeath()
+            if self.wave != None:
+                self.wave.spawned_alive -= 1
+                if self.wave.spawned_alive == 0:
+                    if self.wave.next_wave != None:
+                        self.wave.next_wave.start()
             self.die()
             destroy(self)
+                
 
     def shoot(self,angle=0, speed=1):
         for bullet in self.bullets:
@@ -63,7 +94,6 @@ class Ennemy(Entity):
         return False
 
     def die(self):
-        self.ondeath()
         pass
 
 class SpiralEnnemy(Ennemy):
@@ -113,7 +143,11 @@ class MachineGunEnnemy(Ennemy):
         for bullet in self.bullets_shot:
             if distance_2d(bullet.get_world_position(),self.position) > 4:
                 bullet.available = True
-        
+
+    def die(self):
+        for bullet in self.bullets_shot:
+            bullet.available = True
+
 class AimerEnnemy(Ennemy):
     def __init__(self, bullets,targets,speed = 5,fire_rate= 1, **kwargs):
         super().__init__(bullets, speed = speed,fire_rate = fire_rate, **kwargs)
@@ -235,18 +269,28 @@ if __name__ == "__main__":
     bullets = [Bullet(Vec2(1,1),Vec2(0,0)) for _ in range(1000)]
 
     p1 = KeyboadPlayer(bullets,team=0, lives=float('inf'))
-    #p2 = ControllerPlayer(bullets, team=0, lives=float('inf'))
+    p2 = ControllerPlayer(bullets, team=0, lives=float('inf'))
     
     players = [p1]
     
-    MachineGunEnnemy(bullets, position=Vec2(-5,5))
-    SpiralEnnemy(bullets, position=Vec2(0,5))
-    DoubleSpiralEnnemy(bullets, position=Vec2(5,5))    
-    QuadrupleSpiralEnnemy(bullets, position=Vec2(10,5))
-    AimerEnnemy(bullets, players, position=Vec2(-10,5))
-    PatrolEnnemy(bullets, [Vec2(-10,0),Vec2(-10,10),Vec2(10,10),Vec2(10,0)],players, position=Vec2(0,0))
-    Boss1(bullets, [Vec2(-10,-5),Vec2(10,-5)],players, position=Vec2(0,-5), lives=50)
-    LaserEnnemy(bullets, position=Vec2(0,10))
+    wave = Wave(
+        [
+            (MachineGunEnnemy,{'position':Vec2(-5,5)}),
+            (SpiralEnnemy,{'position':Vec2(0,5)}),
+            (DoubleSpiralEnnemy,{'position':Vec2(5,5)}),
+            (QuadrupleSpiralEnnemy,{'position':Vec2(10,5)}),
+            (AimerEnnemy,{'position':Vec2(-10,5)}),
+            (PatrolEnnemy,{'position':Vec2(0,0),'waypoints':[Vec2(-10,0),Vec2(-10,10),Vec2(10,10),Vec2(10,0)]}),
+            (Boss1,{'position':Vec2(0,-5),'waypoints':[Vec2(-10,-5),Vec2(10,-5)],'lives':50}),
+            (LaserEnnemy,{'position':Vec2(0,10)})
+            
+        ],
+        10,
+        {
+            "bullets":bullets,
+            "targets":players
+        }
+    )
 
 
     def update():
@@ -255,5 +299,7 @@ if __name__ == "__main__":
         camera.set_shader_input("camera_position", camera.position)
         camera.set_shader_input("points", [bullet.get_position() for bullet in bullets])
 
-
+    def input(key):
+        if key == 'enter':
+            wave.start()
     app.run()

@@ -1,6 +1,4 @@
 from ursina import *
-
-
 import time
 from bullet import Bullet
 from shader import bullet_shader
@@ -17,6 +15,8 @@ class ControllerPlayer(Entity):
         self.team = team
         self.lives = lives
         self.last_dash = 0
+        if self.lives != float('inf'):
+            self.heart_containers = [Entity(model="quad", parent = camera.ui, texture="heart", scale=0.03, color=color.azure, position=Vec2(-0.5*camera.aspect_ratio+i*0.035+0.0175,0.48)) for i in range(lives)]
 
     def update(self):
         if self.lives > 0:
@@ -28,9 +28,24 @@ class ControllerPlayer(Entity):
 
             if self.shot():
                 self.lives -= 1
+                if self.lives != float('inf'):
+                    self.heart_containers[self.lives].color = color.black
+            
+            if self.position.x > 16*camera.aspect_ratio:
+                self.position.x = 16*camera.aspect_ratio
+            if self.position.x < -16*camera.aspect_ratio:
+                self.position.x = -16*camera.aspect_ratio
+            
+            if self.position.y > 16:
+                self.position.y = 16
+            if self.position.y < -16:
+                self.position.y = -16
+            
         else:
             self.die()
             destroy(self)
+            for heart in self.heart_containers:
+                destroy(heart)
     
     def shot(self):
         for bullet in self.bullets:
@@ -52,8 +67,7 @@ class ControllerPlayer(Entity):
             if self.last_dash+10 < time.time():
                 self.dash()
                 self.last_dash = time.time()
-        print(key)
-
+                
     def shoot(self):
         for bullet in self.bullets:
             if bullet.available:
@@ -81,7 +95,9 @@ class KeyboadPlayer(Entity):
         self.team = team
         self.lives = lives
         self.last_dash = 0
-
+        if lives != float('inf'):
+            self.heart_containers = [Entity(model="quad", parent = camera.ui, texture="heart", scale=0.03, color=color.red, position=Vec2(0.5*camera.aspect_ratio-i*0.035-0.0175,0.48)) for i in range(lives)]
+        
     def update(self):
         if self.lives > 0:
             lx,ly = held_keys['d'] - held_keys['a'], held_keys['w'] - held_keys['s']
@@ -92,9 +108,14 @@ class KeyboadPlayer(Entity):
 
             if self.shot():
                 self.lives -= 1
+                if self.lives != float('inf'):
+                    self.heart_containers[self.lives].color = color.black
         else:
             self.die()
             destroy(self)
+            for heart in self.heart_containers:
+                destroy(heart)
+            
     
     def shot(self):
         for bullet in self.bullets:
