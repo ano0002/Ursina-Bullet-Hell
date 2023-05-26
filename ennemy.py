@@ -29,12 +29,20 @@ class Wave():
         self.to_spawn = []
             
         if self.next_wave:
-            invoke(self.next_wave.start, delay=self.delay)
+            invoke(self.end, delay=self.delay)
+
+    def end(self):
+        if self.spawned_alive == 0:
+            for player in self.args["targets"]:
+                if player.lives < 3 and player.lives > 0:
+                    player.lives += 1
+        if self.next_wave:
+            self.next_wave.start()
 
 class Ennemy(Entity):
     def func():
         pass
-    def __init__(self, bullets,lives=1, team= 1, speed=5,texture = "turret", on_death=func, wave=None, **kwargs):
+    def __init__(self, bullets,lives=1, team= 1, speed=5,texture = "turret", on_death=func, wave=None,total_alive = 0, **kwargs):
         super().__init__(model='quad',
                          texture=texture,
                          color=color.red,
@@ -42,7 +50,7 @@ class Ennemy(Entity):
         self.SPEED = speed
         self.bullets = bullets
         self.team = team
-        self.total_alive = 0
+        self.total_alive = total_alive
         self.lives = lives
         self.ondeath = on_death
         self.bullets_shot = []
@@ -68,21 +76,22 @@ class Ennemy(Entity):
             if self.wave != None:
                 self.wave.spawned_alive -= 1
                 if self.wave.spawned_alive == 0:
-                    if self.wave.next_wave != None:
-                        self.wave.next_wave.start()
+                    self.wave.end()
             self.die()
             destroy(self)
                 
 
     def shoot(self,angle=0, speed=1):
-        for bullet in self.bullets:
-            if bullet.available:
-                bullet.team = self.team
-                bullet.position = Vec2(self.position.x/(32*camera.aspect_ratio), self.position.y /32)
-                bullet.velocity = Vec2(math.sin(math.radians(self.rotation_z+angle))/camera.aspect_ratio, math.cos(math.radians(self.rotation_z+angle))) * 0.2 * speed
-                self.bullets_shot.append(bullet)
-                break
-    
+        try :
+            for bullet in self.bullets:
+                if bullet.available:
+                    bullet.team = self.team
+                    bullet.position = Vec2(self.position.x/(32*camera.aspect_ratio), self.position.y /32)
+                    bullet.velocity = Vec2(math.sin(math.radians(self.rotation_z+angle))/camera.aspect_ratio, math.cos(math.radians(self.rotation_z+angle))) * 0.2 * speed
+                    self.bullets_shot.append(bullet)
+                    break
+        except:
+            pass
     
     def shot(self):
         for bullet in self.bullets:
@@ -254,6 +263,61 @@ class Boss1(Ennemy):
         super().die()
 
 
+class Boss2(Ennemy):
+    def __init__(self, bullets, waypoints, targets,speed =0.2,fire_rate= 1, **kwargs):
+        super().__init__(bullets, speed = speed,scale =2,fire_rate = fire_rate, **kwargs)
+        self.waypoints = waypoints
+        self.current_waypoint = 0
+        self.targets = targets
+        self.last_bullet = 0
+        self.position = self.waypoints[self.current_waypoint]
+        self.life_bar = HealthBar(max_value=self.lives,roundness=0,show_text=False,bar_color=color.red,animation_duration=0,position = Vec2(-0.25,-0.45),parent = camera.ui)
+        invoke(self.shoot_8_corners,angle=5, delay=1/self.fire_rate)
+    
+    def custom_update(self):
+        if any(target.alive for target in self.targets):
+            target = min(self.targets, key=lambda target: distance_2d(target.position,self.position) if target.alive else float('inf'))
+            self.look_at_2d(target.position)
+            
+        if self.total_alive > 1/self.fire_rate:
+            if self.total_alive-self.last_bullet > 0.03:
+                self.shoot()
+                self.shoot(-5)
+                self.shoot(5)
+                self.last_bullet = self.total_alive
+            if self.total_alive > 1/self.fire_rate+0.1:
+                self.total_alive = 0
+                self.last_bullet = 0
+
+        self.life_bar.value = self.lives
+        
+        if distance_2d(self.position,self.waypoints[self.current_waypoint]) < 0.1:
+            self.current_waypoint = (self.current_waypoint+1)%len(self.waypoints)
+            self.animate_position(self.waypoints[self.current_waypoint],duration=1/self.SPEED,curve=curve.linear)
+
+    
+    def shot(self):
+        for bullet in self.bullets:
+            if not bullet.available:
+                if bullet.team != self.team:
+                    if distance_2d(bullet.get_world_position(),self.position) < 0.8:
+                        bullet.available = True
+                        return True
+                    
+    
+        return False
+
+    def shoot_8_corners(self,angle=0):
+        for i in range(8):
+            self.shoot(45*i)
+        
+        invoke(self.shoot_8_corners,angle=angle+5, delay=1/self.fire_rate/10)
+
+    def die(self):
+        self.life_bar.enabled = False
+        super().die()
+
+
 if __name__ == "__main__":
 
     app = Ursina(development_mode=True)
@@ -287,7 +351,7 @@ if __name__ == "__main__":
             (QuadrupleSpiralEnnemy,{'position':Vec2(10,5)}),
             (AimerEnnemy,{'position':Vec2(-10,5)}),
             (PatrolEnnemy,{'position':Vec2(0,0),'waypoints':[Vec2(-10,0),Vec2(-10,10),Vec2(10,10),Vec2(10,0)]}),
-            (Boss1,{'position':Vec2(0,-5),'waypoints':[Vec2(-10,-5),Vec2(10,-5)],'lives':50}),
+            (Boss1,{'position':Vec2(0,-5),'waypoints':[Vec2(-10,-5),Vec2(10,-5)],'lives':20}),
             (LaserEnnemy,{'position':Vec2(0,10)})
             
         ],

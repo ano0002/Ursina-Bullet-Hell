@@ -4,23 +4,21 @@ from bullet import Bullet
 from shader import bullet_shader
 
 class Player(Entity):
-    def __init__(self, bullets, team= 0, speed=5, lives = 3, add_to_scene_entities=True,left = False, controls = {"up":"w","down":"s","right":"d","left":"a","shoot":"space","dash":"left mouse down"}, **kwargs):
+    idenum = 0
+    def __init__(self, bullets, team= 0, speed=5, lives = 3, add_to_scene_entities=True,left = False, controls = {"up":"w","down":"s","right":"d","left":"a","shoot":"space","dash":"left shift"}, **kwargs):
         super().__init__(add_to_scene_entities,
                          model='quad',
                          texture="player",
                          **kwargs)
+        self.id = Player.idenum
+        Player.idenum += 1
         self.SPEED = speed
         self.bullets = bullets
         self.team = team
         self.lives = lives
         self.last_dash = 0
         self.controls = controls
-        if lives != float('inf'):
-            if not left :
-                self.heart_containers = [Entity(model="quad", parent = camera.ui, texture="heart", scale=0.03, color=color.red, position=Vec2(0.5*camera.aspect_ratio-i*0.035-0.0175,0.48)) for i in range(lives)]
-            else:
-                self.heart_containers = [Entity(model="quad", parent = camera.ui, texture="heart", scale=0.03, color=color.azure, position=Vec2(-0.5*camera.aspect_ratio+i*0.035+0.0175,0.48)) for i in range(lives)]
-
+        
     def update(self):
         if self.lives > 0:
             lx,ly = held_keys[self.controls["right"]] - held_keys[self.controls["left"]], held_keys[self.controls["up"]] - held_keys[self.controls["down"]]
@@ -31,15 +29,38 @@ class Player(Entity):
 
             if self.shot():
                 self.lives -= 1
-                if self.lives != float('inf'):
-                    self.heart_containers[self.lives].color = color.black
+            
+            if self.x < -camera.aspect_ratio*16:
+                self.x = -camera.aspect_ratio*16
+            elif self.x > camera.aspect_ratio*16:
+                self.x = camera.aspect_ratio*16
+            if self.y < -16:
+                self.y = -16
+            elif self.y > 16:
+                self.y = 16
         else:
             self.die()
-            destroy(self)
+            self.disable()
             for heart in self.heart_containers:
                 destroy(heart)
             
-    
+            
+    @property
+    def lives(self):
+        return self._lives
+
+    @lives.setter
+    def lives(self, value):
+        self._lives = value
+        if hasattr(self, "heart_containers"):
+            for heart in self.heart_containers:
+                destroy(heart)
+        if value != float('inf'):
+            self.heart_containers = [Entity(model="quad", parent = camera.ui, texture="heart", scale=0.03, color=color.red, position=Vec2(0.5*camera.aspect_ratio-i*0.035-0.0175,0.48)) if self.id else Entity(model="quad", parent = camera.ui, texture="heart", scale=0.03, color=color.azure, position=Vec2(-0.5*camera.aspect_ratio+i*0.035+0.0175,0.48)) for i in range(value)]
+        if value :
+            self.enable()
+        
+
     def shot(self):
         for bullet in self.bullets:
             if not bullet.available:
@@ -60,7 +81,7 @@ class Player(Entity):
             if self.last_dash+10 < time.time():
                 self.dash()
                 self.last_dash = time.time()
-
+        
     def shoot(self):
         for bullet in self.bullets:
             if bullet.available:
@@ -101,5 +122,9 @@ if __name__ == '__main__':
             if bullet.get_world_position().x > 16*camera.aspect_ratio or bullet.get_world_position().x < -16*camera.aspect_ratio or bullet.get_world_position().y > 16 or bullet.get_world_position().y < -16:
                 bullet.position = Vec2(1,1)
 
-    
+    def input(key):
+        if key == "q":
+            p1.lives += 1
+        if key == "e":
+            p2.lives += 1
     app.run()
