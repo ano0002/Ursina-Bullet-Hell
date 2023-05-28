@@ -1,9 +1,10 @@
 from ursina import *
 
-class Menu(Entity):
+class StartMenu(Entity):
     def __init__(self,on_start,on_quit,**kwargs):
         self.on_start = on_start
         self.on_quit = on_quit
+        self.font = "assets/Evil Empire.otf"
         super().__init__(parent = camera.ui,**kwargs)
 
         self.background = Entity(
@@ -18,30 +19,41 @@ class Menu(Entity):
         self.start_button = Button(
             parent = self,
             model = 'quad',
-            texture = 'assets/start_button.png',    
+            texture = 'button',
             color = color.white,
             highlight_color = color.gray,
             pressed_color = color.white,
-            scale = (.5,.25),
+            scale = (.25,.15),
             position = (0,0,.1),
-            on_click = self.start_game
+            on_click = self.start_game,
+            text="START",
+            text_color = color.black,
+            
         )
+        self.start_button.text_entity.font = self.font
+        self.start_button.text_entity.scale = 0.5        
     
         self.quit_button = Button(
             parent = self,
             model = 'quad',
-            texture = 'assets/quit_button.png',
+            texture = 'button',
             color = color.white,
             highlight_color = color.gray,
             pressed_color = color.white,
-            scale = (.5,.25),
+            scale = (.25,.15),
             position = (0,-.3,.1),
-            on_click = self.quit_game
+            on_click = self.quit_game,
+            text="QUIT",
+            text_color = color.black
         )
         
+        self.quit_button.text_entity.font = self.font
+        self.quit_button.text_entity.scale = 0.5    
+         
         self.title = Text(
             parent = self,
             text = 'Ursina Bullet Hell',
+            font=self.font,
             origin = (0,0),
             scale = 2,
             position = (0,.3,.1)
@@ -86,11 +98,12 @@ if __name__ == '__main__':
     
     def on_start():
         print('start')
+        
     def on_quit():
         application.quit()
     
     
     
-    menu = Menu(on_start,on_quit)
+    menu = StartMenu(on_start,on_quit)
     
     app.run()

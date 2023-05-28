@@ -3,6 +3,7 @@ from player import Player
 from shader import bullet_shader
 from bullet import Bullet
 from tilemap import Tilemap, Tileset
+from menu import StartMenu
 from ennemy import *
 
 app = Ursina(development_mode=True)
@@ -103,8 +104,9 @@ def update():
     for bullet in bullets:
         bullet.update()
     camera.set_shader_input("points", [bullet.get_position() for bullet in bullets])
+def on_start():
+    pass
 
-
-
+StartMenu(on_start=waves[0].start,on_quit=application.quit)
 
 app.run()
