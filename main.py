@@ -102,11 +102,9 @@ for index,wave in enumerate(waves[:-1]):
 def update():
     for bullet in bullets:
         bullet.update()
-    camera.set_shader_input("camera_position", camera.position)
     camera.set_shader_input("points", [bullet.get_position() for bullet in bullets])
 
-def input(key):
-    if key == 'enter':
-        waves[0].start()
+
+
 
 app.run()

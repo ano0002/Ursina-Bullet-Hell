@@ -22,6 +22,7 @@ class Player(Entity):
     def update(self):
         if self.lives > 0:
             lx,ly = held_keys[self.controls["right"]] - held_keys[self.controls["left"]], held_keys[self.controls["up"]] - held_keys[self.controls["down"]]
+            dash = held_keys[self.controls["dash"]]
             self.velocity = Vec3(lx, ly, 0).normalized()*max(abs(lx), abs(ly))
             self.position += self.velocity * time.dt * self.SPEED
             if lx != 0 or ly != 0:
@@ -29,6 +30,10 @@ class Player(Entity):
 
             if self.shot():
                 self.lives -= 1
+            
+            if dash and time.time() - self.last_dash > 10:
+                self.dash()
+                self.last_dash = time.time()
             
             if self.x < -camera.aspect_ratio*16:
                 self.x = -camera.aspect_ratio*16
@@ -108,7 +113,7 @@ if __name__ == '__main__':
                                    "right":"gamepad left stick x",
                                    "left":"",
                                    "shoot":"gamepad a",
-                                   "dash":"gamepad start"},
+                                   "dash":"gamepad right shoulder"},
                                    team=0, left = True)
     p2 = Player(bullets, team=1)
 

@@ -42,10 +42,16 @@ out vec4 color;
 void main() {
     float aspect = window_size.x/window_size.y;
     vec2 curved_uv = CRTCurveUV(uv);
+    if (curved_uv.x>1 || curved_uv.x<0 || curved_uv.y>1 || curved_uv.y<0) 
+        {
+            color = vec4(0,0,0,1);
+            return;
+        }
     vec2 new_uv = curved_uv-vec2(camera_position.x*0.351,camera_position.y*0.63)/camera_position.z;
     new_uv.x *= aspect;
     color = texture(tex, curved_uv);
     for (int i = 0; i < 1000; i++) {
+        if (points[i] == vec3(1,1,-1)) continue;
         vec2 point1 = points[i].xy+vec2(0.5,0.5);
         point1.x *= aspect;
         if (points[i].y < 0.5 && points[i].y > -0.5) {
