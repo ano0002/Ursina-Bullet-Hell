@@ -82,6 +82,7 @@ class StartMenu(Entity):
         
         self.total_time = 0
         self.last_move = float('-inf')
+        
 
     def start_game(self):
         self.background.disable()
@@ -99,7 +100,7 @@ class StartMenu(Entity):
         if key in {"down arrow", "s","gamepad dpad down"}:
             self.selected = min((self.selected + 1),len(self.buttons)-1)
         if key in {"gamepad a","enter"}:
-            self.buttons[self.selected].on_click()
+            invoke(self.buttons[self.selected].on_click,delay = 0.01)
     
     def update(self):
         self.total_time += time.dt
@@ -241,7 +242,7 @@ class PauseMenu(Entity):
         if key in {"down arrow", "s","gamepad dpad down"}:
             self.selected = min((self.selected + 1),len(self.buttons)-1)
         if key in {"gamepad a","enter"}:
-            self.buttons[self.selected].on_click()
+            invoke(self.buttons[self.selected].on_click,delay = 0.01)
     
     def update(self):
         self.total_time += time.dt

@@ -26,7 +26,6 @@ class Tilemap(Entity):
         tiles = [[None for y in range(height)] for x in range(width)]
         tileset_size = self.tileset.tileset_size
         texture= self.tileset.tileset
-        print(tileset_size)
         for y,lines in enumerate(layer):
             for x,gid in enumerate(lines):
                 tile_coord = Vec2(gid%tileset_size.x,

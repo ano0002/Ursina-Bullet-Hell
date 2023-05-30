@@ -14,9 +14,6 @@ class World(Entity):
         for index,wave in enumerate(waves[:-1]):
             wave.next_wave = waves[index+1]
     
-        self.tileset = Tileset("./assets/tileset.png")
-        self.tilemap = Tilemap("./assets/maps/map.csv",self.tileset)
-        self.tilemap.disable()
 
         self.original_waves = waves.copy()
 
@@ -25,6 +22,18 @@ class World(Entity):
         camera.shader = bullet_shader
         self.bullets = [Bullet(Vec2(1,1),Vec2(0,0)) for _ in range(1000)]
 
+        self.pause_menu = PauseMenu(on_resume=self.on_resume,on_leave=self.on_leave,on_quit=application.quit)
+        self.pause_menu.disable()
+        
+        self.reset()
+    
+    def initialize_map(self):
+        self.tileset = Tileset("./assets/tileset.png")
+        self.tilemap = Tilemap("./assets/maps/map.csv",self.tileset)
+        self.tilemap.disable()
+    
+    def reset(self):
+        self.initialize_map()
         p1 = Player(self.bullets, controls={"up":"gamepad left stick y",
                                 "down":"",
                                 "right":"gamepad left stick x",
@@ -33,7 +42,6 @@ class World(Entity):
                                 "dash":"gamepad start"},
                                 left = True)
         p2 = Player(self.bullets)
-
         self.players = [p1,p2]
 
         for player in self.players:
@@ -50,19 +58,16 @@ class World(Entity):
         self.paused = False
         self.playing = False
     
-        self.pause_menu = PauseMenu(on_resume=self.on_resume,on_leave=self.on_leave,on_quit=application.quit)
-        self.pause_menu.disable()
         
         self.start_menu = StartMenu(on_start=self.start_game,on_quit=application.quit)
-
 
     def update(self):
         if self.playing :
             if not self.paused:
                 for bullet in self.bullets:
                     bullet.update()
-                camera.set_shader_input("camera_position", camera.position)
-                camera.set_shader_input("points", [bullet.get_position() for bullet in self.bullets])
+        camera.set_shader_input("camera_position", camera.position)
+        camera.set_shader_input("points", [bullet.get_position() for bullet in self.bullets])
     
     def start_game(self):
         for player in self.players:
@@ -76,18 +81,20 @@ class World(Entity):
     def on_leave(self):
         self.paused = False
         for bullet in self.bullets:
-            bullet.available = True
+            bullet.disable()
         for player in self.players:
-            player.disable()
-        self.waves = self.original_waves.copy()
-        self.tilemap.disable()
+            destroy(player)
+            for heart in player.heart_containers:
+                destroy(heart)
+        destroy(self.tilemap)
         ennemies = []   
         for wave in self.waves:
             ennemies.extend(wave.spawned)
         for ennemy in ennemies:
             destroy(ennemy)
-        self.start_menu.enable()
-        self.playing = False
+        destroy(self.start_menu)
+        self.waves = self.original_waves.copy()
+        self.reset()
 
     def toggle_pause(self):
         self.paused = not self.paused

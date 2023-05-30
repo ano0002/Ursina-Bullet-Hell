@@ -32,6 +32,9 @@ class Bullet():
             self.velocity = Vec2(0,0)
             self.team = -1
 
+    def disable(self):
+        self.available = True
+
 if __name__ == "__main__":
     app = Ursina()
     camera.orthographic = True
