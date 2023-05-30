@@ -191,24 +191,31 @@ class PatrolEnnemy(Ennemy):
         self.targets = targets
         self.last_bullet = 0
         self.position = self.waypoints[self.current_waypoint]
+        self.start_move = 0
+        self.shooting_timer = 0
     
     def custom_update(self):
+        self.shooting_timer += time.dt
         if any(target.alive for target in self.targets):
             target = min(self.targets, key=lambda target: distance_2d(target.position,self.position) if target.alive else float('inf'))
             self.look_at_2d(target.position)
             
-        if self.total_alive > 1/self.fire_rate:
-            if self.total_alive-self.last_bullet > 0.03:
+        if self.shooting_timer > 1/self.fire_rate:
+            if self.shooting_timer-self.last_bullet > 0.03:
                 self.shoot()
-                self.last_bullet = self.total_alive
-            if self.total_alive > 1/self.fire_rate+0.1:
-                self.total_alive = 0
+                self.last_bullet = self.shooting_timer
+            if self.shooting_timer > 1/self.fire_rate+0.1:
+                self.shooting_timer = 0
                 self.last_bullet = 0
 
         
         if distance_2d(self.position,self.waypoints[self.current_waypoint]) < 0.1:
+            self.start_move = self.total_alive
             self.current_waypoint = (self.current_waypoint+1)%len(self.waypoints)
-            self.animate_position(self.waypoints[self.current_waypoint],duration=1/self.SPEED,curve=curve.linear)
+            print(123)
+        else :
+            self.position = lerp(self.waypoints[self.current_waypoint-1],self.waypoints[self.current_waypoint],(self.total_alive-self.start_move)/(1/self.SPEED))
+            print((self.total_alive-self.start_move)/(1/self.SPEED))
 
 class LaserEnnemy(Ennemy):
     def __init__(self, bullets,speed = 5,fire_rate= 1, **kwargs):

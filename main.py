@@ -10,17 +10,17 @@ waves = [
         Wave(
             [
                 (MachineGunEnnemy,{'position':Vec2(-5,5)}),
-                (MachineGunEnnemy,{'position':Vec2(-5,-5)}),
-                (MachineGunEnnemy,{'position':Vec2(5,5)}),
-                (MachineGunEnnemy,{'position':Vec2(5,-5)})
-            ],50 ),
-        Wave(
-            [
-                (MachineGunEnnemy,{'position':Vec2(-5,5)}),
                 (SpiralEnnemy,{'position':Vec2(0,5)}),
                 (PatrolEnnemy,{'waypoints':[Vec2(-10,0),Vec2(-10,10),Vec2(10,10),Vec2(10,0)]}),
                 (PatrolEnnemy,{'waypoints':[Vec2(10,10),Vec2(10,0),Vec2(-10,0),Vec2(-10,10)]}),
                 (LaserEnnemy,{'position':Vec2(0,10)})
+            ],50 ),
+        Wave(
+            [
+                (MachineGunEnnemy,{'position':Vec2(-5,5)}),
+                (MachineGunEnnemy,{'position':Vec2(-5,-5)}),
+                (MachineGunEnnemy,{'position':Vec2(5,5)}),
+                (MachineGunEnnemy,{'position':Vec2(5,-5)})
             ],50 ),
         Wave(
             [
