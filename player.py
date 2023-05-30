@@ -5,7 +5,7 @@ from shader import bullet_shader
 
 class Player(Entity):
     idenum = 0
-    def __init__(self, bullets, team= 0, speed=5, lives = 3, add_to_scene_entities=True,left = False, controls = {"up":"w","down":"s","right":"d","left":"a","shoot":"space","dash":"left shift"}, **kwargs):
+    def __init__(self, bullets, team= 0, speed=5, lives = 3, add_to_scene_entities=True,left = False, controls = {"up":"w","down":"s","right":"d","left":"a","shoot":"space","dash":"left shift"}, world = None, **kwargs):
         super().__init__(add_to_scene_entities,
                          model='quad',
                          texture="player",
@@ -18,36 +18,40 @@ class Player(Entity):
         self.lives = lives
         self.last_dash = 0
         self.controls = controls
+        self.world = world
         
     def update(self):
-        if self.lives > 0:
-            lx,ly = held_keys[self.controls["right"]] - held_keys[self.controls["left"]], held_keys[self.controls["up"]] - held_keys[self.controls["down"]]
-            dash = held_keys[self.controls["dash"]]
-            self.velocity = Vec3(lx, ly, 0).normalized()*max(abs(lx), abs(ly))
-            self.position += self.velocity * time.dt * self.SPEED
-            if lx != 0 or ly != 0:
-                self.rotation_z = -math.degrees(math.atan2(ly, lx))+90
+        if self.world is None: return
+        if self.world.playing:
+            if not self.world.paused :
+                if self.lives > 0:
+                    lx,ly = held_keys[self.controls["right"]] - held_keys[self.controls["left"]], held_keys[self.controls["up"]] - held_keys[self.controls["down"]]
+                    dash = held_keys[self.controls["dash"]]
+                    self.velocity = Vec3(lx, ly, 0).normalized()*max(abs(lx), abs(ly))
+                    self.position += self.velocity * time.dt * self.SPEED
+                    if lx != 0 or ly != 0:
+                        self.rotation_z = -math.degrees(math.atan2(ly, lx))+90
 
-            if self.shot():
-                self.lives -= 1
-            
-            if dash and time.time() - self.last_dash > 10:
-                self.dash()
-                self.last_dash = time.time()
-            
-            if self.x < -camera.aspect_ratio*16:
-                self.x = -camera.aspect_ratio*16
-            elif self.x > camera.aspect_ratio*16:
-                self.x = camera.aspect_ratio*16
-            if self.y < -16:
-                self.y = -16
-            elif self.y > 16:
-                self.y = 16
-        else:
-            self.die()
-            self.disable()
-            for heart in self.heart_containers:
-                destroy(heart)
+                    if self.shot():
+                        self.lives -= 1
+                    
+                    if dash and time.time() - self.last_dash > 10:
+                        self.dash()
+                        self.last_dash = time.time()
+                    
+                    if self.x < -camera.aspect_ratio*16:
+                        self.x = -camera.aspect_ratio*16
+                    elif self.x > camera.aspect_ratio*16:
+                        self.x = camera.aspect_ratio*16
+                    if self.y < -16:
+                        self.y = -16
+                    elif self.y > 16:
+                        self.y = 16
+                else:
+                    self.die()
+                    self.disable()
+                    for heart in self.heart_containers:
+                        destroy(heart)
             
             
     @property
@@ -80,12 +84,15 @@ class Player(Entity):
         pass
 
     def input(self, key):
-        if key == self.controls["shoot"]:
-            self.shoot()
-        if key == self.controls["dash"]:
-            if self.last_dash+10 < time.time():
-                self.dash()
-                self.last_dash = time.time()
+        if self.world is None: return
+        if self.world.playing:
+            if not self.world.paused :
+                if key == self.controls["shoot"]:
+                    self.shoot()
+                if key == self.controls["dash"]:
+                    if self.last_dash+10 < time.time():
+                        self.dash()
+                        self.last_dash = time.time()
         
     def shoot(self):
         for bullet in self.bullets:

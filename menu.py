@@ -81,19 +81,16 @@ class StartMenu(Entity):
         self.buttons = [self.start_button,self.quit_button]
         
         self.total_time = 0
-        self.destroyed = False
         self.last_move = float('-inf')
 
     def start_game(self):
-        destroy(self)
-        destroy(self.background)
-        self.destroyed = True
+        self.background.disable()
+        self.disable()
         self.on_start()
     
     def quit_game(self):
         destroy(self)
         destroy(self.background)
-        self.destroyed = True
         self.on_quit()
     
     def input(self,key):
@@ -215,40 +212,21 @@ class PauseMenu(Entity):
 
     def resume_game(self):
         self.disable()
-        for button in self.buttons:
-            button.disable()
         self.on_resume()
     
     def leave_game(self):
-        destroy(self)
-        self.destroyed = True
+        self.disable()
         self.on_leave()
     
     def quit_game(self):
-        destroy(self)
-        self.destroyed = True
         self.on_quit()
     
     def toggle(self):
         if self.enabled:
             self.disable()
-            for button in self.buttons:
-                button.disable()
-            self.on_resume()
         else:
             self.enable()
-            for button in self.buttons:
-                button.enable()
     
-    def enable(self):
-        super().enable()
-        for button in self.buttons:
-            button.enable()
-    
-    def disable(self):
-        super().disable()
-        for button in self.buttons:
-            button.disable()
     
     def input(self,key):
         if key in {"up arrow", "w","gamepad dpad up"}:
