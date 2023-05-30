@@ -18,6 +18,8 @@ class World(Entity):
         self.tilemap = Tilemap("./assets/maps/map.csv",self.tileset)
         self.tilemap.disable()
 
+        self.original_waves = waves.copy()
+
         camera.orthographic = True
         camera.fov = 32
         camera.shader = bullet_shader
@@ -73,9 +75,19 @@ class World(Entity):
         
     def on_leave(self):
         self.paused = False
-        for bullet in bullets:
+        for bullet in self.bullets:
             bullet.available = True
+        for player in self.players:
+            player.disable()
+        self.waves = self.original_waves.copy()
+        self.tilemap.disable()
+        ennemies = []   
+        for wave in self.waves:
+            ennemies.extend(wave.spawned)
+        for ennemy in ennemies:
+            destroy(ennemy)
         self.start_menu.enable()
+        self.playing = False
 
     def toggle_pause(self):
         self.paused = not self.paused
@@ -88,8 +100,9 @@ class World(Entity):
         
     
     def input(self,key):
-        if key in {"escape", "gamepad b"}:
-            self.pause_menu.toggle()
-            self.toggle_pause()
+        if self.playing :
+            if key in {"escape", "gamepad b"}:
+                self.pause_menu.toggle()
+                self.toggle_pause()
             
     

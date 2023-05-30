@@ -10,6 +10,13 @@ waves = [
         Wave(
             [
                 (MachineGunEnnemy,{'position':Vec2(-5,5)}),
+                (MachineGunEnnemy,{'position':Vec2(-5,-5)}),
+                (MachineGunEnnemy,{'position':Vec2(5,5)}),
+                (MachineGunEnnemy,{'position':Vec2(5,-5)})
+            ],50 ),
+        Wave(
+            [
+                (MachineGunEnnemy,{'position':Vec2(-5,5)}),
                 (SpiralEnnemy,{'position':Vec2(0,5)}),
                 (PatrolEnnemy,{'waypoints':[Vec2(-10,0),Vec2(-10,10),Vec2(10,10),Vec2(10,0)]}),
                 (PatrolEnnemy,{'waypoints':[Vec2(10,10),Vec2(10,0),Vec2(-10,0),Vec2(-10,10)]}),
@@ -17,11 +24,9 @@ waves = [
             ],50 ),
         Wave(
             [
-                (MachineGunEnnemy,{'position':Vec2(-5,5)}),
-                (MachineGunEnnemy,{'position':Vec2(-5,-5)}),
-                (MachineGunEnnemy,{'position':Vec2(5,5)}),
-                (MachineGunEnnemy,{'position':Vec2(5,-5)})
-            ],50 ),
+                (Boss1,{'position':Vec2(0,-5),'waypoints':[Vec2(-10,-5),Vec2(10,-5)],'lives':20}),
+                (MachineGunEnnemy,{'position':Vec2(-5,5)})
+            ],90 ),
         Wave(
             [
                 (QuadrupleSpiralEnnemy,{'position':Vec2(5,5)}),
@@ -33,11 +38,6 @@ waves = [
                 (PatrolEnnemy,{'waypoints':[Vec2(-10,0),Vec2(-10,10),Vec2(10,10),Vec2(10,0)]}),
                 (PatrolEnnemy,{'waypoints':[Vec2(10,10),Vec2(10,0),Vec2(-10,0),Vec2(-10,10)]})
             ],50 ),
-        Wave(
-            [
-                (Boss2,{'position':Vec2(0,-5),'waypoints':[Vec2(-10,-5),Vec2(10,-5)],'lives':20}),
-                (MachineGunEnnemy,{'position':Vec2(-5,5)})
-            ],90 ),
         Wave(
             [
                 (LaserEnnemy,{'position':Vec2(0,0)}),

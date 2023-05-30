@@ -212,11 +212,9 @@ class PatrolEnnemy(Ennemy):
         if distance_2d(self.position,self.waypoints[self.current_waypoint]) < 0.1:
             self.start_move = self.total_alive
             self.current_waypoint = (self.current_waypoint+1)%len(self.waypoints)
-            print(123)
         else :
             self.position = lerp(self.waypoints[self.current_waypoint-1],self.waypoints[self.current_waypoint],(self.total_alive-self.start_move)/(1/self.SPEED))
-            print((self.total_alive-self.start_move)/(1/self.SPEED))
-
+            
 class LaserEnnemy(Ennemy):
     def __init__(self, bullets,speed = 5,fire_rate= 1, **kwargs):
         super().__init__(bullets, speed = speed,fire_rate = fire_rate, **kwargs)
@@ -232,6 +230,7 @@ class LaserEnnemy(Ennemy):
                 self.last_bullet = 0
         self.rotation_z += self.SPEED*5*time.dt
 
+
 class Boss1(Ennemy):
     def __init__(self, bullets, waypoints, targets,speed =0.2,fire_rate= 1, **kwargs):
         super().__init__(bullets, speed = speed,scale =2,fire_rate = fire_rate, **kwargs)
@@ -241,74 +240,37 @@ class Boss1(Ennemy):
         self.last_bullet = 0
         self.position = self.waypoints[self.current_waypoint]
         self.life_bar = HealthBar(max_value=self.lives,roundness=0,show_text=False,bar_color=color.red,animation_duration=0,position = Vec2(-0.25,-0.45),parent = camera.ui)
+        self.shooting_timer = 0
+        self.shooting_8_corners_timer = 0
+        self.angle = 0
     
     def custom_update(self):
+        self.shooting_timer += time.dt
+        self.shooting_8_corners_timer += time.dt
         if any(target.alive for target in self.targets):
             target = min(self.targets, key=lambda target: distance_2d(target.position,self.position) if target.alive else float('inf'))
             self.look_at_2d(target.position)
             
-        if self.total_alive > 1/self.fire_rate:
-            if self.total_alive-self.last_bullet > 0.03:
+        if self.shooting_timer > 1/self.fire_rate:
+            if self.shooting_timer-self.last_bullet > 0.03:
                 self.shoot()
                 self.shoot(-5)
                 self.shoot(5)
-                self.last_bullet = self.total_alive
-            if self.total_alive > 1/self.fire_rate+0.1:
-                self.total_alive = 0
+                self.last_bullet = self.shooting_timer
+            if self.shooting_timer > 1/self.fire_rate+0.1:
+                self.shooting_timer = 0
                 self.last_bullet = 0
-
-        self.life_bar.value = self.lives
-        
-        if distance_2d(self.position,self.waypoints[self.current_waypoint]) < 0.1:
-            self.current_waypoint = (self.current_waypoint+1)%len(self.waypoints)
-            self.animate_position(self.waypoints[self.current_waypoint],duration=1/self.SPEED,curve=curve.linear)
-
-    
-    def shot(self):
-        for bullet in self.bullets:
-            if not bullet.available:
-                if bullet.team != self.team:
-                    if distance_2d(bullet.get_world_position(),self.position) < 0.8:
-                        bullet.available = True
-                        return True
-        return False
-
-    def die(self):
-        self.life_bar.enabled = False
-        super().die()
-
-
-class Boss2(Ennemy):
-    def __init__(self, bullets, waypoints, targets,speed =0.2,fire_rate= 1, **kwargs):
-        super().__init__(bullets, speed = speed,scale =2,fire_rate = fire_rate, **kwargs)
-        self.waypoints = waypoints
-        self.current_waypoint = 0
-        self.targets = targets
-        self.last_bullet = 0
-        self.position = self.waypoints[self.current_waypoint]
-        self.life_bar = HealthBar(max_value=self.lives,roundness=0,show_text=False,bar_color=color.red,animation_duration=0,position = Vec2(-0.25,-0.45),parent = camera.ui)
-        invoke(self.shoot_8_corners,angle=5, delay=1/self.fire_rate)
-    
-    def custom_update(self):
-        if any(target.alive for target in self.targets):
-            target = min(self.targets, key=lambda target: distance_2d(target.position,self.position) if target.alive else float('inf'))
-            self.look_at_2d(target.position)
+        if self.shooting_8_corners_timer > 1/self.fire_rate:
+            self.angle = self.shoot_8_corners(self.angle)
+            self.shooting_8_corners_timer = 0
             
-        if self.total_alive > 1/self.fire_rate:
-            if self.total_alive-self.last_bullet > 0.03:
-                self.shoot()
-                self.shoot(-5)
-                self.shoot(5)
-                self.last_bullet = self.total_alive
-            if self.total_alive > 1/self.fire_rate+0.1:
-                self.total_alive = 0
-                self.last_bullet = 0
-
         self.life_bar.value = self.lives
         
         if distance_2d(self.position,self.waypoints[self.current_waypoint]) < 0.1:
+            self.start_move = self.total_alive
             self.current_waypoint = (self.current_waypoint+1)%len(self.waypoints)
-            self.animate_position(self.waypoints[self.current_waypoint],duration=1/self.SPEED,curve=curve.linear)
+        else :
+            self.position = lerp(self.waypoints[self.current_waypoint-1],self.waypoints[self.current_waypoint],(self.total_alive-self.start_move)/(1/self.SPEED))
 
     
     def shot(self):
@@ -324,9 +286,8 @@ class Boss2(Ennemy):
 
     def shoot_8_corners(self,angle=0):
         for i in range(8):
-            self.shoot(45*i)
-        
-        invoke(self.shoot_8_corners,angle=angle+5, delay=1/self.fire_rate/10)
+            self.shoot(45*i+angle)
+        return angle+5
 
     def die(self):
         self.life_bar.enabled = False

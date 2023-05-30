@@ -116,6 +116,13 @@ class StartMenu(Entity):
             if button != self.buttons[self.selected]:
                 button.scale = (.25,.15)
     
+    def enable(self):
+        self.background.enable()
+        return super().enable()
+
+    def disable(self):
+        self.background.disable()
+        return super().disable()
 
 class PauseMenu(Entity):
     def __init__(self,on_resume,on_leave,on_quit,**kwargs):
@@ -279,11 +286,9 @@ if __name__ == '__main__':
     pausemenu.disable()
     
     def input(key):
-        global menu
         if key == "gamepad b" :
-            if menu.destroyed:
-                menu = StartMenu(on_start,on_quit)
-        
+            menu.enable()
+
         if key == "escape":
             pausemenu.toggle()
     
