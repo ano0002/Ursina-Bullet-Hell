@@ -6,10 +6,6 @@ from tilemap import Tilemap, Tileset
 from menu import StartMenu, PauseMenu
 from ennemy import *
 
-app = Ursina(development_mode=True)
-
-camera.orthographic = True
-camera.fov = 32
 
 class World(Entity):
     def __init__(self,waves):
@@ -22,6 +18,8 @@ class World(Entity):
         self.tilemap = Tilemap("./assets/maps/map.csv",self.tileset)
         self.tilemap.disable()
 
+        camera.orthographic = True
+        camera.fov = 32
         camera.shader = bullet_shader
         self.bullets = [Bullet(Vec2(1,1),Vec2(0,0)) for _ in range(1000)]
 
