@@ -15,25 +15,30 @@ class Wave():
         self.spawned_alive = 0
         self.delay = delay
         self.next_wave = next_wave
-        
+        self.world = None
         self.args = args
-        
+        self.total_time = float("-inf")
     
     def start(self):
+        self.total_time = 0
         if self.to_spawn == []:
             return
         for ennemy_type, args in self.to_spawn:
-            self.spawned.append(ennemy_type(wave = self,**self.args,**args))
+            self.spawned.append(ennemy_type(wave = self,world = self.world,**self.args,**args))
             self.spawned_total += 1
             self.spawned_alive += 1
         self.to_spawn = []
             
-        if self.next_wave:
-            invoke(self.end, delay=self.delay)
+
+    def update(self):
+        self.total_time += time.dt
+        if self.total_time > self.delay:
+            self.end()
+
 
     def end(self):
         if self.spawned_alive == 0:
-            for player in self.args["targets"]:
+            for player in self.world.players:
                 if player.lives < 3 and player.lives > 0:
                     player.lives += 1
         if self.next_wave:
@@ -42,7 +47,7 @@ class Wave():
 class Ennemy(Entity):
     def func():
         pass
-    def __init__(self, bullets,lives=1, team= 1, speed=5,texture = "turret", on_death=func, wave=None,total_alive = 0, **kwargs):
+    def __init__(self, bullets,lives=1, team= 1, speed=5,texture = "turret", on_death=func, wave=None,total_alive = 0,world= None, **kwargs):
         super().__init__(model='quad',
                          texture=texture,
                          color=color.red,
@@ -55,30 +60,33 @@ class Ennemy(Entity):
         self.ondeath = on_death
         self.bullets_shot = []
         self.wave = wave
+        self.world = world
         
     def update(self):
-        if self.lives > 0:
-            
-            self.total_alive += time.dt
-            
-            if self.shot():
-                self.lives -= 1
-            
-            if hasattr(self,"custom_update"):
-                self.custom_update()
+        if self.world != None:
+            if not self.world.paused:
+                    if self.lives > 0:
+                        
+                        self.total_alive += time.dt
+                        
+                        if self.shot():
+                            self.lives -= 1
+                        
+                        if hasattr(self,"custom_update"):
+                            self.custom_update()
 
-            for bullet in self.bullets_shot:
-                if bullet.available:
-                    self.bullets_shot.remove(bullet)
+                        for bullet in self.bullets_shot:
+                            if bullet.available:
+                                self.bullets_shot.remove(bullet)
             
-        else:
-            self.ondeath()
-            if self.wave != None:
-                self.wave.spawned_alive -= 1
-                if self.wave.spawned_alive == 0:
-                    self.wave.end()
-            self.die()
-            destroy(self)
+                    else:
+                        self.ondeath()
+                        if self.wave != None:
+                            self.wave.spawned_alive -= 1
+                            if self.wave.spawned_alive == 0:
+                                self.wave.end()
+                        self.die()
+                        destroy(self)
                 
 
     def shoot(self,angle=0, speed=1):
