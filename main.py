@@ -3,7 +3,7 @@ from player import Player
 from shader import bullet_shader
 from bullet import Bullet
 from tilemap import Tilemap, Tileset
-from menu import StartMenu
+from menu import StartMenu, PauseMenu
 from ennemy import *
 
 app = Ursina(development_mode=True)
@@ -100,13 +100,47 @@ waves = [
 for index,wave in enumerate(waves[:-1]):
     wave.next_wave = waves[index+1]
 
+for player in players:
+    player.disable()
+
+tilemap.disable()
+
 def update():
     for bullet in bullets:
         bullet.update()
+    camera.set_shader_input("camera_position", camera.position)
     camera.set_shader_input("points", [bullet.get_position() for bullet in bullets])
+    
 def on_start():
-    pass
+    for player in players:
+        player.enable()
+    waves[0].start()
+    tilemap.enable()
 
-StartMenu(on_start=waves[0].start,on_quit=application.quit)
+def on_resume():
+    global paused
+    paused = False
+    
+def on_leave():
+    global paused,bullets,start_menu
+    paused = False
+    for entity in scene.entities:
+        destroy(entity)
+    for bullet in bullets:
+        bullet.available = True
+    start_menu = StartMenu(on_start=on_start,on_quit=application.quit)
+    
+
+pause_menu = PauseMenu(on_resume=on_resume,on_leave=on_leave,on_quit=application.quit)
+pause_menu.disable()
+
+def input(key):
+    if key == "escape":
+        if start_menu.destroyed:
+            pause_menu.toggle()
+    if key == "f11":
+        window.fullscreen = not window.fullscreen
+
+start_menu = StartMenu(on_start=on_start,on_quit=application.quit)
 
 app.run()

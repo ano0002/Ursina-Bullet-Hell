@@ -102,6 +102,21 @@ class Player(Entity):
     def dash(self,dash_length = 3):
         self.animate_position(self.position + self.up* dash_length, duration=0.1, curve = curve.in_out_cubic)
 
+    def enable(self):
+        super().enable()
+        for heart in self.heart_containers:
+            heart.enable()
+    
+    def disable(self):
+        super().disable()
+        for heart in self.heart_containers:
+            heart.disable()
+    
+    def destroy(self):
+        super().destroy()
+        for heart in self.heart_containers:
+            heart.destroy()
+
 if __name__ == '__main__':
     app = Ursina()
     camera.orthographic = True
