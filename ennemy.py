@@ -213,7 +213,7 @@ class PatrolEnnemy(Ennemy):
             self.start_move = self.total_alive
             self.current_waypoint = (self.current_waypoint+1)%len(self.waypoints)
         else :
-            self.position = lerp(self.waypoints[self.current_waypoint-1],self.waypoints[self.current_waypoint],(self.total_alive-self.start_move)/(1/self.SPEED))
+            self.position = lerp(self.waypoints[self.current_waypoint-1],self.waypoints[self.current_waypoint],min((self.total_alive-self.start_move)/(1/self.SPEED),1))
             
 class LaserEnnemy(Ennemy):
     def __init__(self, bullets,speed = 5,fire_rate= 1, **kwargs):
@@ -270,7 +270,7 @@ class Boss1(Ennemy):
             self.start_move = self.total_alive
             self.current_waypoint = (self.current_waypoint+1)%len(self.waypoints)
         else :
-            self.position = lerp(self.waypoints[self.current_waypoint-1],self.waypoints[self.current_waypoint],(self.total_alive-self.start_move)/(1/self.SPEED))
+            self.position = lerp(self.waypoints[self.current_waypoint-1],self.waypoints[self.current_waypoint],min(1,(self.total_alive-self.start_move)/(1/self.SPEED)))
 
     
     def shot(self):
