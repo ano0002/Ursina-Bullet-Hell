@@ -23,7 +23,7 @@ class Player(Entity):
     def update(self):
         if self.world is None: return
         if self.world.playing:
-            if not self.world.paused :
+            if not self.world.status == "paused" :
                 if self.lives > 0:
                     lx,ly = held_keys[self.controls["right"]] - held_keys[self.controls["left"]], held_keys[self.controls["up"]] - held_keys[self.controls["down"]]
                     dash = held_keys[self.controls["dash"]]
@@ -86,7 +86,7 @@ class Player(Entity):
     def input(self, key):
         if self.world is None: return
         if self.world.playing:
-            if not self.world.paused :
+            if not self.world.status == "paused" :
                 if key == self.controls["shoot"]:
                     self.shoot()
                 if key == self.controls["dash"]:
@@ -119,10 +119,6 @@ class Player(Entity):
         for heart in self.heart_containers:
             heart.disable()
     
-    def destroy(self):
-        super().destroy()
-        for heart in self.heart_containers:
-            heart.destroy()
 
 if __name__ == '__main__':
     app = Ursina()

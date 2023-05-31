@@ -258,7 +258,180 @@ class PauseMenu(Entity):
         for button in self.buttons:
             if button != self.buttons[self.selected]:
                 button.scale = (.25,.15)
+
+
+class PlayerCountSelection(Entity):
+    def __init__(self,on_select,on_back,**kwargs):
+        
+        self.on_select = on_select
+        self.on_back = on_back
+        self.font = "assets/Evil Empire.otf"
+        
+        
+        super().__init__(parent = camera.ui,**kwargs)
+
+        
+
+        self.one = Button(
+            parent = self,
+            model = 'quad',
+            texture = 'buttonvert',
+            color = color.white,
+            highlight_color = color.gray,
+            pressed_color = color.white,
+            scale = (.15,.25),
+            position = (-.5,0,.1),
+            on_click = Func(self.on_select,1),
+            text="1",
+            text_color = color.black,
+        )
+        self.one.text_entity.font = self.font
+        self.one.text_entity.scale = 0.5      
+        
+        
+        self.two = Button(
+            parent = self,
+            model = 'quad',
+            texture = 'buttonvert',
+            color = color.white,
+            highlight_color = color.gray,
+            pressed_color = color.white,
+            scale = (.15,.25),
+            position = (-.16,0,.1),
+            on_click = Func(self.on_select,2),
+            text="2",
+            text_color = color.black,
+        )
+        self.two.text_entity.font = self.font
+        self.two.text_entity.scale = 0.5        
     
+        self.three = Button(
+            parent = self,
+            model = 'quad',
+            texture = 'buttonvert',
+            color = color.white,
+            highlight_color = color.gray,
+            pressed_color = color.white,
+            scale = (.15,.25),
+            position = (.16,0,.1),
+            on_click = Func(self.on_select,3),
+            text="3",
+            text_color = color.black
+        )
+        self.three.text_entity.font = self.font
+        self.three.text_entity.scale = 0.5
+
+        self.four = Button(
+            parent = self,
+            model = 'quad',
+            texture = 'buttonvert',
+            color = color.white,
+            highlight_color = color.gray,
+            pressed_color = color.white,
+            scale = (.15,.25),
+            position = (.5,0,.1),
+            on_click = Func(self.on_select,4),
+            text="4",
+            text_color = color.black
+        )
+        self.four.text_entity.font = self.font
+        self.four.text_entity.scale = .5
+    
+        self.back_button = Button(
+            parent = self,
+            model = 'quad',
+            texture = 'button',
+            color = color.white,
+            highlight_color = color.gray,
+            pressed_color = color.white,
+            scale = (.25,.15),
+            position = (0,-.3,.1),
+            on_click = self.on_back,
+            text="BACK",
+            text_color = color.black
+        )
+        self.back_button.text_entity.font = self.font
+        self.back_button.text_entity.scale = 0.5
+    
+        self.title = Text(
+            parent = self,
+            text = 'Ursina Bullet Hell',
+            font=self.font,
+            origin = (0,0),
+            scale = 2,
+            position = (0,.3,.1)
+        )
+        
+        self.version = Text(
+            parent = self,
+            text = 'v0.6',
+            origin = (0,0),
+            scale = 1,
+            position = (0,.25,.1)
+        )
+        
+        self.author = Text(
+            parent = self,
+            text = 'by @ano002',
+            origin = (0,0),
+            scale = 1,
+            position = (.8,-.48,.1)
+        )
+        self.selected = 0
+
+        self.back_selected = False
+
+        # button list
+        self.buttons = [self.one,self.two,self.three,self.four]
+        
+        self.total_time = 0
+        self.destroyed = False
+        self.last_move = float('-inf')
+        
+    
+    def input(self,key):
+        if key in {"left arrow", "a","gamepad dpad left"}:
+            self.selected = max((self.selected - 1),0)
+        if key in {"right arrow", "d","gamepad dpad right"}:
+            self.selected = min((self.selected + 1),len(self.buttons)-1)
+        if key in {"up arrow", "w","gamepad dpad up"}:
+            self.back_selected = False
+        if key in {"down arrow", "s","gamepad dpad down"}:
+            self.back_selected = True
+        if key in {"gamepad a","enter"}:
+            if self.back_selected:
+                invoke(self.back_button.on_click,delay = 0.01)
+            else:
+                invoke(self.buttons[self.selected].on_click,delay = 0.01)
+    
+    def update(self):
+        self.total_time += time.dt
+        
+        if held_keys["gamepad left stick x"] < -.5 and time.time() - self.last_move > .2:
+            self.selected = max((self.selected - 1),0)
+            self.last_move = time.time()
+        if held_keys["gamepad left stick x"] > .5 and time.time() - self.last_move > .2:
+            self.selected = min((self.selected + 1),len(self.buttons)-1)
+            self.last_move = time.time()
+        if held_keys["gamepad left stick y"] < -.5 and time.time() - self.last_move > .2:
+            self.back_selected = True
+            self.last_move = time.time()
+        if held_keys["gamepad left stick y"] > .5 and time.time() - self.last_move > .2:
+            self.back_selected = False
+            self.last_move = time.time()
+        
+       
+        if self.back_selected:
+            self.back_button.scale = (.25,.15) + (.0075*math.sin(self.total_time*5),.0125*math.sin(self.total_time*5))
+            for button in self.buttons:
+                button.scale = (.15,.25)
+        else:
+            self.back_button.scale = (.25,.15)
+            self.buttons[self.selected].scale = (.15,.25) + (.0075*math.sin(self.total_time*5),.0125*math.sin(self.total_time*5))
+            for button in self.buttons:
+                if button != self.buttons[self.selected]:
+                    button.scale = (.15,.25)
+
 
 if __name__ == '__main__':
     from shader import bullet_shader
@@ -281,6 +454,7 @@ if __name__ == '__main__':
     def on_quit():
         application.quit()
     
+    """
     menu = StartMenu(on_start,on_quit)
     pausemenu = PauseMenu(on_resume,on_leave,on_quit)
     
@@ -292,5 +466,7 @@ if __name__ == '__main__':
 
         if key == "escape":
             pausemenu.toggle()
+    """
+    menu = PlayerCountSelection(on_start,on_quit)
     
     app.run()

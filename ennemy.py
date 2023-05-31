@@ -64,7 +64,7 @@ class Ennemy(Entity):
         
     def update(self):
         if self.world != None:
-            if not self.world.paused:
+            if not self.world.status == "paused":
                     if self.lives > 0:
                         
                         self.total_alive += time.dt
