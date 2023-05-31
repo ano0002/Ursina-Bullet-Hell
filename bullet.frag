@@ -1,8 +1,5 @@
 #version 430
 
-float distance_from_center(vec2 v){
-    return length(v - vec2(0.5));
-}
 
 vec2 CRTCurveUV( vec2 uv )
 {
@@ -39,37 +36,48 @@ uniform float vignette_density;
 in vec2 uv;
 uniform vec2 window_size;
 out vec4 color;
-void main() {
-    float aspect = window_size.x/window_size.y;
-    vec2 curved_uv = CRTCurveUV(uv);
-    if (curved_uv.x>1 || curved_uv.x<0 || curved_uv.y>1 || curved_uv.y<0) 
-        {
-            color = vec4(0,0,0,1);
-            return;
-        }
-    vec2 new_uv = curved_uv-vec2(camera_position.x*0.351,camera_position.y*0.63)/camera_position.z;
-    new_uv.x *= aspect;
-    color = texture(tex, curved_uv);
-    for (int i = 0; i < 1000; i++) {
-        if (points[i] == vec3(1,1,-1)) continue;
-        vec2 point1 = points[i].xy+vec2(0.5,0.5);
-        point1.x *= aspect;
-        if (points[i].y < 0.5 && points[i].y > -0.5) {
-            float d = distance(point1,new_uv);
-            if (d < bullets_size/3){
-                color = mix(vec4(1), vec4(1,0,0,1), d*(1/bullets_size));
-            }
-            else if (d < bullets_size) {
-                if (points[i].z == 0) {
-                    color = mix(team1_color, color, d*(1/bullets_size));
-                }
-                else{
-                    color = mix(team2_color, color, d*(1/bullets_size));
-                }
-            }
+float aspect;
+vec2 new_uv;
+vec2 point1;
 
+void main() {
+    aspect = window_size.x / window_size.y;
+    vec2 curved_uv = CRTCurveUV(uv);
+    if (curved_uv.x > 1.0 || curved_uv.x < 0.0 || curved_uv.y > 1.0 || curved_uv.y < 0.0) {
+        color = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+    new_uv = curved_uv - vec2(camera_position.x * 0.351, camera_position.y * 0.63) / camera_position.z;
+    new_uv.x *= aspect;
+
+    color = texture(tex, curved_uv);
+
+    float bullets_size_div_3 = bullets_size / 3.0;
+    float ratio = 1.0 / bullets_size;
+    vec2 half_vec = vec2(0.5, 0.5);
+    for (int i = 0; i < 1000; i++) {
+        if (points[i] == vec3(1.0, 1.0, -1.0))
+            continue;
+
+        point1 = points[i].xy + half_vec;
+        point1.x *= aspect;
+
+        if (points[i].y < 0.5 && points[i].y > -0.5) {
+            float d = distance(point1, new_uv);
+            float percentage = d * ratio;
+
+            if (d < bullets_size_div_3) {
+                color = mix(vec4(1.0), vec4(1.0, 0.0, 0.0, 1.0), percentage);
+            } else if (d < bullets_size) {
+                if (points[i].z == 0.0) {
+                    color = mix(team1_color, color, percentage);
+                } else {
+                    color = mix(team2_color, color, percentage);
+                }
+            }
         }
     }
+
     DrawVignette(color, uv);
     DrawScanline(color, uv);
 }

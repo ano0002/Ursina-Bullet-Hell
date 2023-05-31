@@ -52,7 +52,7 @@ class World(Entity):
     
     def reset(self):
         self.initialize_map()
-        p1 = Player(self.bullets, controls={"up":"gamepad left stick y",
+        p2 = Player(self.bullets, controls={"up":"gamepad left stick y",
                                 "down":"",
                                 "right":"gamepad left stick x",
                                 "left":"",
@@ -60,7 +60,7 @@ class World(Entity):
                                 "dash":"gamepad start"},
                                 left = True)
         
-        p2 = Player(self.bullets)
+        p1 = Player(self.bullets)
         
         p3 = Player(self.bullets, controls={"up":"up arrow",
                                 "down":"down arrow",

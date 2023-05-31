@@ -2,11 +2,10 @@ from ursina import *
 import time
 from bullet import Bullet
 from shader import bullet_shader
-from world import World
 
 class Player(Entity):
     idenum = 0
-    def __init__(self, bullets: list[Bullet], team: int= 0, speed: float=5, lives: int = 3, add_to_scene_entities: bool=True,left: bool = False, controls: dict[str,str] = {"up":"w","down":"s","right":"d","left":"a","shoot":"space","dash":"left shift"}, world: World = None, **kwargs):
+    def __init__(self, bullets: list[Bullet], team: int= 0, speed: float=5, lives: int = 3, add_to_scene_entities: bool=True,left: bool = False, controls: dict[str,str] = {"up":"w","down":"s","right":"d","left":"a","shoot":"space","dash":"left shift"}, world = None, **kwargs):
         super().__init__(add_to_scene_entities,
                          model='quad',
                          texture="player",
