@@ -2,10 +2,11 @@ from ursina import *
 import time
 from bullet import Bullet
 from shader import bullet_shader
+from world import World
 
 class Player(Entity):
     idenum = 0
-    def __init__(self, bullets, team= 0, speed=5, lives = 3, add_to_scene_entities=True,left = False, controls = {"up":"w","down":"s","right":"d","left":"a","shoot":"space","dash":"left shift"}, world = None, **kwargs):
+    def __init__(self, bullets: list[Bullet], team: int= 0, speed: float=5, lives: int = 3, add_to_scene_entities: bool=True,left: bool = False, controls: dict[str,str] = {"up":"w","down":"s","right":"d","left":"a","shoot":"space","dash":"left shift"}, world: World = None, **kwargs):
         super().__init__(add_to_scene_entities,
                          model='quad',
                          texture="player",
@@ -59,7 +60,7 @@ class Player(Entity):
         return self._lives
 
     @lives.setter
-    def lives(self, value):
+    def lives(self, value : int):
         self._lives = value
         if hasattr(self, "heart_containers"):
             for heart in self.heart_containers:
@@ -83,7 +84,7 @@ class Player(Entity):
         print("dead")
         pass
 
-    def input(self, key):
+    def input(self, key : str):
         if self.world is None: return
         if self.world.playing:
             if not self.world.status == "paused" :
@@ -106,7 +107,7 @@ class Player(Entity):
     def alive(self):
         return self.lives > 0
 
-    def dash(self,dash_length = 3):
+    def dash(self,dash_length: int = 3):
         self.animate_position(self.position + self.up* dash_length, duration=0.1, curve = curve.in_out_cubic)
 
     def enable(self):

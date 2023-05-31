@@ -9,7 +9,7 @@ from copy import deepcopy
 
 
 class World(Entity):
-    def __init__(self,waves):
+    def __init__(self,waves : list[Wave]):
         super().__init__()
         self.waves = waves
         for index,wave in enumerate(waves[:-1]):
@@ -37,7 +37,7 @@ class World(Entity):
         self.start_menu.enable()
         self.status = "main_menu"
 
-    def on_player_count_selected(self,player_count):
+    def on_player_count_selected(self,player_count : int):
         self.player_count_selection.disable()
         for i in range(player_count):
             self.players[i].enable()
@@ -105,7 +105,7 @@ class World(Entity):
         return self.status in {"playing","paused"}
 
     @playing.setter
-    def playing(self,value):
+    def playing(self,value : bool):
         if value :
             self.status = "playing"
 
@@ -157,7 +157,7 @@ class World(Entity):
         self.status = "playing"
         
     
-    def input(self,key):
+    def input(self,key : str):
         if self.playing :
             if key in {"escape", "gamepad b"}:
                 self.pause_menu.toggle()
